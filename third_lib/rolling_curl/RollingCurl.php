@@ -338,7 +338,9 @@ class RollingCurl {
         // options for this entire curl object
         $options = $this->__get('options');
 		if (ini_get('safe_mode') == 'Off' || !ini_get('safe_mode')) {
+            //启用时会将服务器返回的Location,放在header中递归的返回给服务器。
             $options[CURLOPT_FOLLOWLOCATION] = 1;
+            //限定递归返回的数量
 			$options[CURLOPT_MAXREDIRS] = 5;
         }
         $headers = $this->__get('headers');

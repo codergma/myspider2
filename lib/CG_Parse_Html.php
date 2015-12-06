@@ -11,7 +11,7 @@ class CG_Parse_Html
 	* @param  string html信息
 	* @return array
 	*/
-	public static function fetch_user_info($content)
+	public static function parse_user_info($content)
 	{
 	 	$data = array();
 
@@ -119,7 +119,7 @@ class CG_Parse_Html
 	 * @param string $user_type followees 、followers
 	 * @return void
 	 */
-	public static function fetch_username($content,$user_type)
+	public static function parse_username($content,$user_type)
 	{
 	    if (empty($content)) 
 	    {

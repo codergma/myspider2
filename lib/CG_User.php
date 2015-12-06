@@ -259,7 +259,7 @@ class CG_User
 		$redis = CG_User::get_redis();
 		foreach ($users as $value)
 		{
-			$redis->incr($value['username']);
+			$redis->zincrby('usernames',1,$value['username']);
 		}
 	}
 	/**
@@ -268,20 +268,19 @@ class CG_User
 	* @param  int 获取用户个数
 	* @return array 
 	*/
-	public static function get_username($count)
+	public static function get_username($count = 60)
 	{
-	    $data = array();
-
-	    if (empty($content)) 
-	    {
-	        return $data;
-	    }
-	    // 从用户主页获取用户最后一条动态信息
-	    preg_match('#<div class="zm-profile-section-item zm-item clearfix" data-time="(.*?)"#', $content, $out);
-	    $data['last_message_time'] = empty($out[1]) ? 0 : intval($out[1]);
-	    preg_match('#<div class="zm-profile-section-main zm-profile-section-activity-main zm-profile-activity-page-item-main">(.*?)</div>#s', $content, $out);
-	    $data['last_message'] = empty($out[1]) ? 0 : trim(str_replace("\n", " ", strip_tags($out[1])));
-	    return $data;
+		$limit = array('limit'=>array(0,$count-1));
+		$redis = CG_User::get_redis();
+		$usernames = $redis->zrangebyscore('usernames',0,0,$limit);
+		if(empty($usernames))
+		{
+			return NULL;
+		}
+		else
+		{
+			return $usernames;
+		}
 	}	
 	/**
 	* 查询未抓去过信息的用户

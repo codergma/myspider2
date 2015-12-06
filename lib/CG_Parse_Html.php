@@ -1,14 +1,17 @@
 <?php
 require_once 'CG_Redis.php';
-class CG_User
+/**
+* Parse html contents
+*/
+class CG_Parse_Html
 {
 	/**
-	* 筛选用户信息
+	* 筛选用户详细信息
 	*
 	* @param  string html信息
 	* @return array
 	*/
-	private static function _get_user_info($content)
+	public static function fetch_user_info($content)
 	{
 	 	$data = array();
 
@@ -109,67 +112,14 @@ class CG_User
 	    $data['shares'] = empty($out[1]) ? 0 : intval($out[1]);
 	    return $data;
 	}
-
 	/**
-	* save_user_info
-	* 插入抓取的用户信息
-	*
-	* @param string html信息
-	* @return 
-	*/
-	public static function save_user_info($content)
-	{
-		$arr = self::_get_user_info($content);
-
-		if(empty($arr))
-		{
-			return FALSE;
-		}
-
-		$res_arr = array();
-		$res_arr['`id`'] = 0;
-		foreach ($arr as $key => $value)
-		{
-			$key = "`$key`";
-			if (is_string($value))
-			{
-				$value = stripslashes($value);
-				$value = addslashes($value);
-				$value = "'$value'"; 
-			}
-			$res_arr[$key] = $value;
-		}
-
-		$keys = implode(array_keys($res_arr),',');
-		$vals = implode(array_values($res_arr),',');
-		$keys = '('.$keys.')';
-		$vals = '('.$vals.')';
-
-		$update = NULL;
-		foreach ($res_arr as $key => $value)
-		{
-			if ($key != "`id`")
-			{
-				$update .= $key.'='.$value.',';
-			}
-		}
-		$update = substr($update,0, -1);
-		$sql = "INSERT INTO `user` ";
-		$sql .= $keys.'VALUES'.$vals;
-		$sql .=" ON DUPLICATE KEY UPDATE ".$update;
-//		echo $sql;
-		return self::query($sql);
-	}
-	/**
-	 * 筛选用户
+	 * 筛选用户名
 	 * 
-	 * @param string $username
+	 * @param string 
 	 * @param string $user_type followees 、followers
 	 * @return void
-	 * @author seatle <seatle@foxmail.com> 
-	 * @created time :2015-07-28 09:46
 	 */
-	private static function _filter_user($content,$user_type)
+	public static function fetch_username($content,$user_type)
 	{
 	    if (empty($content)) 
 	    {
@@ -241,73 +191,4 @@ class CG_User
 	    return $users;
 	}
 
-
-	/**
-	* 保存用户名
-	*/
-	public static function save_user($content, $user_type)
-	{
-		$users = self::_filter_user($content, $user_type);
-		if (empty($users)
-		{
-			return FALSE;
-		}
-		if ($this->redis != NULL)
-		{
-			return $this->redis;
-		}
-		$redis = CG_User::get_redis();
-		foreach ($users as $value)
-		{
-			$redis->zincrby('usernames',1,$value['username']);
-		}
-	}
-	/**
-	* 获取用户名,用来抓取用户信息
-	*
-	* @param  int 获取用户个数
-	* @return array 
-	*/
-	public static function get_username($count = 60)
-	{
-		$limit = array('limit'=>array(0,$count-1));
-		$redis = CG_User::get_redis();
-		$usernames = $redis->zrangebyscore('usernames',0,0,$limit);
-		if(empty($usernames))
-		{
-			return NULL;
-		}
-		else
-		{
-			return $usernames;
-		}
-	}	
-	/**
-	* 查询未抓去过信息的用户
-	* @param int 获取记录数量
-	* @return mixed
-	*/
-	public static function get_users($limit=20)
-	{
-		if (empty($limit))
-		{
-			return FALSE;
-		}
-		$sql = "SELECT `username` FROM `user` WHERE `used`=0 LIMIT 20";
-		$result = self::query($sql);
-		$res_arr = array();
-		if ($result->num_rows > 0)
-		{
-			while($row = $result->fetch_assoc())
-			{
-				$res_arr[] = $row['username'];
-			}
-		}
-		$sql = "('".implode($res_arr,"','")."')";
-		//标记为已经抓去过信息
-		$sql = "UPDATE `user` SET `used`=1 WHERE `username` IN ".$sql;
-		self::query($sql);
-		// $result->free();
-		return $res_arr;
-	}
 }

@@ -8,12 +8,16 @@ require_once 'CG_Redis.php';
 class CG_User_Info
 {
 	/**
+	* @var array
+	*/
+	private $usernames;
+	/**
 	* 用户信息插入数据库
 	*
 	* @param array html信息
 	* @return 
 	*/
-	public static function save_user_info($info)
+	public function save_user_info($info)
 	{
 		if(empty($info))
 		{
@@ -54,53 +58,12 @@ class CG_User_Info
 		return self::query($sql);
 	}
 	
-
-
-	/**
-	* 保存用户名到redis
-	*/
-	public static function save_username($usernames)
-	{
-		if (empty($usernames)
-		{
-			return FALSE;
-		}
-		if ($this->redis != NULL)
-		{
-			return $this->redis;
-		}
-		$redis = CG_User::get_redis();
-		foreach ($usernames as $value)
-		{
-			$redis->zincrby('usernames',1,$value['username']);
-		}
-	}
-	/**
-	* 从redis中获取用户名,用来抓取用户信息
-	*
-	* @param  int 获取用户个数
-	* @return array 
-	*/
-	public static function get_username($count = 60)
-	{
-		$limit = array('limit'=>array(0,$count-1));
-		$redis = CG_User::get_redis();
-		$usernames = $redis->zrangebyscore('usernames',1,1,$limit);
-		if(empty($usernames))
-		{
-			return NULL;
-		}
-		else
-		{
-			return $usernames;
-		}
-	}	
 	/**
 	* 查询未抓去过信息的用户
 	* @param int 获取记录数量
 	* @return mixed
 	*/
-	public static function get_users($limit=20)
+	public function get_users($limit=20)
 	{
 		if (empty($limit))
 		{
@@ -124,5 +87,52 @@ class CG_User_Info
 		return $res_arr;
 	}
 
+	/**
+	* 保存用户名到redis
+	*/
+	public function save_username($usernames)
+	{
+		if (empty($usernames)
+		{
+			return FALSE;
+		}
+		if ($this->redis != NULL)
+		{
+			return $this->redis;
+		}
+		$redis = CG_User::get_redis();
+		foreach ($usernames as $value)
+		{
+			$redis->zincrby('usernames',1,$value['username']);
+		}
+	}
+	/**
+	* 从redis中获取用户名,用来抓取用户信息
+	*
+	* @param  int 获取用户个数
+	* @return array 
+	*/
+	public   function get_username($count = 60)
+	{
+		if (sizeof($this->usernames) < $count)
+		{
+			$redis = CG_User::get_redis();
+			$usernames = $redis->zrangebyscore('usernames',1,1.0E+8,$limit);
+			if(empty($usernames))
+			{
+				$this->save_username();
+
+			}
+			array_walk($usernames,'_walk_callback',$redis);
+		}
+		else
+		{
+			return array_splice($this->usernames,0,$count);
+		}
+		$limit = array('limit'=>array(0,$count-1));
+	}	
 }
-	
+	function _walk_callback($value,$key,$redis)
+	{
+		$redis->increby('usernames',-1.0E+10,$valus);
+	}

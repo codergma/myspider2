@@ -2,16 +2,6 @@
 require_once '../third_lib/rolling_curl/RollingCurl.php';
 
 /**
- * 回调函数
- */
- function _request_callback($response)
-{
-    echo 'abc';
-    $filename = uniqid().'.html';
-    $rst = file_put_contents($filename, $response);
-    return $rst>0 ? TRUE:FALSE;
-}
-/**
 * 抓取网页内容 
 */
 class CG_Fetch_Html 
@@ -36,6 +26,10 @@ class CG_Fetch_Html
 	* @var int
 	*/
 	private $window_size;
+	/**
+	* @var string
+	*/
+	private $callback;
 
 	/**
 	* 构造函数
@@ -45,12 +39,13 @@ class CG_Fetch_Html
 	* $urls      array
 	* $window_size int
 	*/
-	public function __construct($urls,$cookie_path=NULL,$useragent=NULL,$options=array(),$window_size=5)
+	public function __construct($urls,$callback,$cookie_path=NULL,$useragent=NULL,$options=array(),$window_size=5)
 	{
+		$this->urls        = $urls;
+		$this->callback    = $callback;
 		$this->cookie_path = $cookie_path;
 		$this->useragent   = $useragent; 
 		$this->options     = $options;
-		$this->urls        = $urls;
 		$this->window_size = $window_size;
 		$this->_init();
 	}
@@ -68,12 +63,19 @@ class CG_Fetch_Html
 		}
 		if (!empty($options))
 		{
-			$this->options = array_merge($this->options,$options);
+            if(!empty($this->options))
+            {
+				$this->options = array_merge($this->options,$options);
+            }
+            else
+            {
+            	$this->options = $options;
+            }
 		}
 	}
 	public function fetch_html()
 	{
-		$rc = new RollingCurl('_request_callback');
+		$rc = new RollingCurl($this->callback);
 		foreach ($this->urls as $url)
 		{
 			$request = new RollingCurlRequest($url,'Get',NULL,NULL,$this->options);

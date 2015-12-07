@@ -85,7 +85,7 @@ class CG_User_Info
 	{
 		$limit = array('limit'=>array(0,$count-1));
 		$redis = CG_User::get_redis();
-		$usernames = $redis->zrangebyscore('usernames',0,0,$limit);
+		$usernames = $redis->zrangebyscore('usernames',1,1,$limit);
 		if(empty($usernames))
 		{
 			return NULL;

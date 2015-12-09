@@ -1,17 +1,19 @@
 <?php
-require_once '../config/config.php';
+require_once '/home/liubin/Downloads/myspider2/config/config.php';
+
 class CG_Redis
 {
+
 	/**
 	* 获取redis对象
 	*
 	* @return Redis
 	*/
-	public static get_redis()
+	public static function get_redis()
 	{
-		$redis_conf = $globals['config']['redis'];
+		$redis_conf = $GLOBALS['config']['redis'];
 		$redis = new Redis();
 		$res = $redis->connect($redis_conf['host'],$redis_conf['port']);
-		return $res;
+		return $redis;
 	}
 }

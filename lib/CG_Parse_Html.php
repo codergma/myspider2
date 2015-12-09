@@ -1,5 +1,5 @@
 <?php
-require_once 'CG_Redis.php';
+require_once '/home/liubin/Downloads/myspider2/lib/CG_Redis.php';
 /**
 * Parse html contents
 */
@@ -19,7 +19,9 @@ class CG_Parse_Html
 	    {
 	        return NULL;
 	    }
-
+        //　用户名
+        preg_match('#<meta name="apple-itunes-app"[\s\S]*app-argument=zhihu://people/([\s\S]*)">#U', $content,$out);
+        $data['username'] = empty($out[1])?'':$out[1];
 	    // 一句话介绍
 	    preg_match('#<span class="bio" title=["|\'](.*?)["|\']>#', $content, $out);
 	    $data['headline'] = empty($out[1]) ? '' : $out[1];
@@ -143,7 +145,7 @@ class CG_Parse_Html
 	            );
 	        }
 	    }
-
+/*
 	    $keyword = $user_type == 'followees' ? '关注了' : '关注者';
 
 	    preg_match('#<span class="zg-gray-normal">'.$keyword.'</span><br />\s<strong>(.*?)</strong><label> 人</label>#', $content, $out);
@@ -188,6 +190,7 @@ class CG_Parse_Html
 	            $j++;
 	        }
 	    }
+*/
 	    return $users;
 	}
 

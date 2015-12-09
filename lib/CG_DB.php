@@ -1,5 +1,5 @@
 <?php
-require_once '../config/config.php';
+require_once '/home/liubin/Downloads/myspider2/config/config.php';
 /**
 * 数据库类
 *
@@ -30,7 +30,7 @@ class CG_DB
 			}
 			else
 			{
-				self::$db->set_charset('utf-8');
+				self::$db->set_charset('utf8');
 			}
 		}
 	}
@@ -40,7 +40,7 @@ class CG_DB
 	*
 	* @param string 
 	*/
-	protected static function query($sql)
+	public static function query($sql)
 	{
 		$sql = trim($sql);
 		if(self::$db == NULL)
@@ -79,3 +79,4 @@ class CG_DB
 			return self::$rsid;
 		}
 	}
+}

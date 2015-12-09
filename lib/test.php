@@ -1,5 +1,5 @@
 <?php
-require_once 'CG_Fetch_Html.php';
+require_once '/home/liubin/Downloads/myspider2/lib/CG_Fetch_Html.php';
 
 
 /**
@@ -14,11 +14,11 @@ require_once 'CG_Fetch_Html.php';
 }
 
 $callback    = 'request_callback';
-$cookie_path = '../config/cookie.txt';
+$cookie_path = '/home/liubin/Downloads/myspider2/config/cookie.txt';
 $useragent   = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36';
 $urls        = array(
-			'http://www.zhihu.com/people/lin-taro',
-			'http://www.zhihu.com/people/codergma');
+			'http://www.zhihu.com/people/lin-taro/followees',
+			'http://www.zhihu.com/people/lin-taro/followers');
 
 $fetch   =  new CG_Fetch_Html($urls,'request_callback',$cookie_path,$useragent);
 $fetch->fetch_html();

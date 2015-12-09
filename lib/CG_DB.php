@@ -9,11 +9,11 @@ require_once '/home/liubin/Downloads/myspider2/config/config.php';
 class CG_DB
 {
 	/**
-	* @var MySQLi $db 数据库对象
+	* @var MySQLi  
 	*/
 	private static $db;
 	/**
-	* @var mysqli_result $mysqli_rst mysqli_result对象
+	* @var mysqli_result 
 	*/
 	private static $mysqli_rst;
 

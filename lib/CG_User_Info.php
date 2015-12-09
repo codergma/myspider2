@@ -5,7 +5,7 @@ require_once '/home/liubin/Downloads/myspider2/lib/CG_Fetch_Html.php';
 require_once '/home/liubin/Downloads/myspider2/lib/CG_Parse_Html.php';
 
 /**
-*　获取或保存用户信息
+*　获取或保存用户信息,主要与MySQL和Redis
 */
 class CG_User_Info
 {

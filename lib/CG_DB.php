@@ -4,16 +4,23 @@ require_once '/home/liubin/Downloads/myspider2/config/config.php';
 * 数据库类
 *
 * @author codergma<codergma@163.com>
+* @link http://blog.codergma.com
 */
 class CG_DB
 {
+	/**
+	* @var MySQLi $db 数据库对象
+	*/
 	private static $db;
-	private static $rsid;
-	private static $query_count;
+	/**
+	* @var mysqli_result $mysqli_rst mysqli_result对象
+	*/
+	private static $mysqli_rst;
 
 	/**
-	* _init_mysql
 	* 初始化数据库
+	* 
+	* @param array $config 数据库配置
 	*/
 	protected static function _init_mysql($config=array())
 	{
@@ -24,21 +31,21 @@ class CG_DB
 		if (!self::$db)
 		{
 			self::$db = new mysqli($config['host'],$config['user'],$config['password'],$config['db_name']);
-			if (0 !== self::$db->connect_errno)
+			if (0 == self::$db->connect_errno)
 			{
-				echo 'MySQL connect error'.PHP_EOL;
+				self::$db->set_charset('utf8');
 			}
 			else
 			{
-				self::$db->set_charset('utf8');
+				echo 'MySQL connect error'.PHP_EOL;
 			}
 		}
 	}
 	/**
-	* query
 	* 数据库查询函数
 	*
-	* @param string 
+	* @param string $sql 查询语句 
+	* @return mixed
 	*/
 	public static function query($sql)
 	{
@@ -48,35 +55,17 @@ class CG_DB
 			self::_init_mysql();
 		}
 
-		self::$rsid = self::$db->query($sql);
-		if (FALSE == self::$rsid)
+		self::$mysqli_rst = self::$db->query($sql);
+		if (FALSE == self::$mysqli_rst)
 		{
-
-			echo 'MySQL query  errno : '.self::$db->errno;
-			echo '<br/>';
+			echo 'MySQL query  errno : '.self::$db->errno.PHP_EOL;
 			$backtrace = debug_backtrace();
 			var_dump($backtrace);
-            // array_shift($backtrace);
-            // $narr = array('class', 'type', 'function', 'file', 'line');
-            // $err = "debug_backtrace：\n";
-            // foreach($backtrace as $i => $l)
-            // {
-            //     foreach($narr as $k)
-            //     {
-            //         if( !isset($l[$k]) ) $l[$k] = '';
-            //     }
-            //     $err .= "[$i] in function {$l['class']}{$l['type']}{$l['function']} ";
-            //     if($l['file']) $err .= " in {$l['file']} ";
-            //     if($l['line']) $err .= " on line {$l['line']} ";
-            //     $err .= "\n\n";
-            // }
-            // echo $err;
 			return FALSE;
 		}
 		else
 		{
-			self::$query_count++;
-			return self::$rsid;
+			return self::$mysqli_rst;
 		}
 	}
 }

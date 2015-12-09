@@ -1,14 +1,14 @@
 <?php
 require_once '/home/liubin/Downloads/myspider2/lib/CG_Redis.php';
 /**
-* Parse html contents
+*  解析抓取到的网页内容
 */
 class CG_Parse_Html
 {
 	/**
 	* 筛选用户详细信息
 	*
-	* @param  string html信息
+	* @param  string $content html信息
 	* @return array
 	*/
 	public static function parse_user_info($content)
@@ -117,9 +117,9 @@ class CG_Parse_Html
 	/**
 	 * 筛选用户名
 	 * 
-	 * @param string 
+	 * @param string $content 网页内容
 	 * @param string $user_type followees 、followers
-	 * @return void
+	 * @return array
 	 */
 	public static function parse_username($content,$user_type)
 	{

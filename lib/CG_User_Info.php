@@ -9,25 +9,24 @@ require_once '/home/liubin/Downloads/myspider2/lib/CG_Parse_Html.php';
 */
 class CG_User_Info
 {
+	/**
+	* @var array
+	*/
 	private $usernames = array();
 	/**
 	* 用户信息插入数据库
 	*
-	* @param array html信息
-	* @return 
+	* @param array  $info 待插入数据库数组
+	* @return mixed
 	*/
 	public function save_user_info($info)
 	{
-		$sql = "INSERT INTO `user` (`id`,`username`,`headline`,`headimg`,`location`,`business`,`gender`,`employment`,`position`,`education`,`education_extra`,`weibo`,`description`,`followees`,`followers`,`followed`,`topics`,`pv`,`asks`,`answers`,`posts`,`collections`,`logs`,`votes`,`thanks`,`favs`,`shares`)VALUES(0,'yunshu','阿里巴巴集团 资深安全专家，http://www.icylife.net','https://pic1.zhimg.com/32d3a53cb425fdae5d9ef0297bbbb080_l.jpg','杭州','互联网',1,'阿里巴巴集团','资深安全专家','武汉科技大学','国际经济与贸易专业','http://weibo.com/pstyunshu','等闲变却故人心，却道故人心易变',197,60890,1,35,17627,3,47,16,1,14,26821,2100,1284,120) ON DUPLICATE KEY UPDATE `username`='yunshu',`headline`='阿里巴巴集团 资深安全专家，http://www.icylife.net',`headimg`='https://pic1.zhimg.com/32d3a53cb425fdae5d9ef0297bbbb080_l.jpg',`location`='杭州',`business`='互联网',`gender`=1,`employment`='阿里巴巴集团',`position`='资深安全专家',`education`='武汉科技大学',`education_extra`='国际经济与贸易专业',`weibo`='http://weibo.com/pstyunshu',`description`='等闲变却故人心，却道故人心易变',`followees`=197,`followers`=60890,`followed`=1,`topics`=35,`pv`=17627,`asks`=3,`answers`=47,`posts`=16,`collections`=1,`logs`=14,`votes`=26821,`thanks`=2100,`favs`=1284,`shares`=120";
-		CG_DB::query($sql);
-		return ;
 		if(empty($info))
 		{
 			return FALSE;
 		}
-
-		$res_arr = array();
 		$res_arr['`id`'] = 0;
+		//　构造INSERT语句
 		foreach ($info as $key => $value)
 		{
 			$key = "`$key`";
@@ -45,6 +44,7 @@ class CG_User_Info
 		$keys = '('.$keys.')';
 		$vals = '('.$vals.')';
 
+		//　构造　ON DUPLICATE KEY UPDATE语句
 		$update = NULL;
 		foreach ($res_arr as $key => $value)
 		{
@@ -57,7 +57,7 @@ class CG_User_Info
 		$sql = "INSERT INTO `user` ";
 		$sql .= $keys.'VALUES'.$vals;
 		$sql .=" ON DUPLICATE KEY UPDATE ".$update;
-        file_put_contents('/home/liubin/Desktop/log.txt',$sql);
+		
 		return CG_DB::query($sql);
 	}
 	
@@ -65,10 +65,10 @@ class CG_User_Info
 	/**
 	* 从redis中获取用户名,用来抓取用户信息
 	*
-	* @param  int 获取用户个数
+	* @param  int $count 获取用户个数
 	* @return array 
 	*/
-	public   function get_redis_user($count = 60)
+	public  function get_redis_user($count = 60)
 	{
 		$redis = CG_Redis::get_redis();
 		$limit = array('limit'=>array(0,$count-1));
@@ -78,14 +78,15 @@ class CG_User_Info
 			$this->_fetch_follow();
 			$this->usernames = $redis->zrangebyscore('usernames',1,1.0E+8,$limit);
 		}
-		return array_splice($this->usernames,0,$count);
-
+		$result = array_splice($this->usernames,0,$count);
+		array_walk($result, '_walk_callback');
+		return $result; 
 	}	
 
 	/**
 	* 从MySQL中，查询未以此为标准抓取关注者的用户
 	* 
-	* @param int 获取记录数量
+	* @param int $limit 获取记录数量
 	* @return mixed
 	*/
 	private function _get_sql_users($limit=20)
@@ -114,6 +115,8 @@ class CG_User_Info
 
 	/**
 	* 关注者，关注了用户名保存用户名到redis中，下一步用来抓取信息
+	*
+	* @return mixed
 	*/
 	private function _fetch_follow()
 	{
@@ -123,7 +126,7 @@ class CG_User_Info
 		{
 			file_put_contents('/home/liubin/Downloads/myspider2/log/'.date('Y-m-d H:i:s').'.log', 
 							'数据库中没有可用用户',FILE_APPEND);
-			return ;
+			return FALSE;
 		}
 
 		$followees_urls = array();
@@ -135,19 +138,25 @@ class CG_User_Info
 		}
 
 		$cookie_path = '/home/liubin/Downloads/myspider2/config/cookie.txt';
+		$cookie = file_get_contents($cookie_path);
 		$useragent   = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.80 Safari/537.36';
 
 		//抓取followees
-		$fetch_followees   =  new CG_Fetch_Html($followees_urls,"followees_callback",$cookie_path,$useragent);
+		$fetch_followees   =  new CG_Fetch_Html($followees_urls,"followees_callback");
+		$fetch_followees->cookie = $cookie;
+		$fetch_followees->useragent  = $useragent;
 		$fetch_followees->fetch_html();
 
 
 		//抓取followers
-		$fetch_followers   =  new CG_Fetch_Html($followers_urls,'followers_callback',$cookie_path,$useragent);
+		$fetch_followers   =  new CG_Fetch_Html($followers_urls,'followers_callback');
+		$fetch_followers->cookie = $cookie;
+		$fetch_followers->useragent  = $useragent;
 		$fetch_followers->fetch_html();
 	}
 	
 }
+
 	function save_to_redis($usernames)
 	{
 		if (empty($usernames))
@@ -176,7 +185,6 @@ class CG_User_Info
 	// 回调函数，用来处理关注者页面信息
 	function followers_callback($response)
 	{
-//        file_put_contents('/home/liubin/Downloads/myspider2/log/test.html',$response,FILE_APPEND);
 		if (!empty($response))
 		{
 			$info = CG_Parse_Html::parse_username($response,'followers');
@@ -187,7 +195,8 @@ class CG_User_Info
 			}
 		}
 	}
-	function _walk_callback($value,$key,$redis)
+	function _walk_callback($value,$key)
 	{
-		$redis->increby('usernames',-1.0E+10,$value);
+		$redis = CG_Redis::get_redis();
+		$redis->zincrby('usernames',-1.0E+10,$value);
 	}

@@ -1,6 +1,9 @@
 <?php
 require_once '/home/liubin/Downloads/myspider2/config/config.php';
 
+/**
+* Redis连接类
+*/
 class CG_Redis
 {
 

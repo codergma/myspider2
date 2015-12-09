@@ -2,71 +2,70 @@
 require_once '/home/liubin/Downloads/myspider2/third_lib/rolling_curl/RollingCurl.php';
 
 /**
-* 抓取网页内容 
+* 抓取网页内容类 
 */
 class CG_Fetch_Html 
 {
 	/**
-	* @var string
+	* @var string 
 	*/
-	private $cookie_path;
+	private $cookie;
 	/**
 	* @var string
 	*/
 	private $useragent;
 	/**
-	* @var array 
+	* @var array  
 	*/
-	private $options;
+	private $options = array();
 	/**
 	* @var array
 	*/
 	private $urls;
 	/**
-	* @var int
+	* @var int curl批处理句柄最大同时连接数
 	*/
-	private $window_size;
+	private $window_size = 5;
 	/**
-	* @var string
+	* @var string 回调函数
 	*/
 	private $callback;
 
 	/**
 	* 构造函数
-	* $cookie_path string
-	* $useragent string
-	* $options   array
-	* $urls      array
-	* $window_size int
+	* 
+	* @param array $urls 要抓取的url
+	* @param array $callback 回到函数
 	*/
-	public function __construct($urls,$callback,$cookie_path=NULL,$useragent=NULL,$options=array(),$window_size=2)
+	public function __construct($urls,$callback)
 	{
 		$this->urls        = $urls;
 		$this->callback    = $callback;
-		$this->cookie_path = $cookie_path;
-		$this->useragent   = $useragent; 
-		$this->options     = $options;
-		$this->window_size = $window_size;
-		$this->_init();
 	}
-	private function _init()
+	public function __set($name,$value)
 	{
-		$options = array();
-		if (!empty($this->cookie_path))
+		switch ($name)
 		{
-			$cookie  = file_get_contents($this->cookie_path);
-			$options[CURLOPT_COOKIE] = $cookie;
-		}
-		if (!empty($this->useragent))
-		{
-			$options[CURLOPT_USERAGENT] = $this->useragent;
-		}
-		if (!empty($options))
-		{
-            $this->options = $this->options + $options;
+			case 'cookie':
+				$this->options[CURLOPT_COOKIE] = $value;
+				break;
+			case 'useragent':
+				$this->options[CURLOPT_USERAGENT] = $value;
+				break;
+			case 'options':
+	            $this->options = $this->options + $value;
+	            break;
+			default:
+				break;
 		}
 	}
-	public function fetch_html()
+	
+	/**
+	* 抓取网页
+	*
+	* @param int $window_size curl批处理句柄最大同时连接数
+	*/
+	public function fetch_html($window_size=NULL)
 	{
 		$rc = new RollingCurl($this->callback);
 		foreach ($this->urls as $url)
@@ -74,6 +73,13 @@ class CG_Fetch_Html
 			$request = new RollingCurlRequest($url,'Get',NULL,NULL,$this->options);
 			$rc->add($request);	
 		}
-		$rc->execute($this->window_size);
+		if (!empty($window_size))
+		{
+			$rc->execute($window_size);
+		}
+		else
+		{
+			$rc->execute($this->window_size);
+		}
 	}
 }
